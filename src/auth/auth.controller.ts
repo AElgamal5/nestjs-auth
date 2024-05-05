@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Get,
   HttpCode,
@@ -7,20 +8,20 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { LocalAuthGuard } from './local-auth.guard';
 import { Request as Req } from 'express';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { AuthDto } from './auth.dto';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @UseGuards(LocalAuthGuard)
   @Post('/login')
   @HttpCode(HttpStatus.OK)
-  async login(@Request() req: Req) {
-    const tokens = await this.authService.login(req.user);
+  async login(@Request() req: Req, @Body() dto: AuthDto) {
+    const user = await this.authService.validateUser(dto);
+    const tokens = await this.authService.login(user);
     return {
       message: "You've logged in successfully",
       statusCode: HttpStatus.OK,
